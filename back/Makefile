@@ -1,6 +1,6 @@
 MAKEFLAGS += --always-make # required for proper function 
 export CMAKE_EXPORT_COMPILE_COMMANDS ?= 1 # export compile commands for code analysis
-export CMAKE_LOG_LEVEL ?= WARNING
+export CMAKE_LOG_LEVEL ?= NOTICE
 
 
 ### config ###
