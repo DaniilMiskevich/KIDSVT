@@ -9,28 +9,13 @@
 
 #include "vram.hpp"
 
-#define VMACH_CMD_SEP ('\n')
-
-// TODO? probably unnecessary?
-static std::string cleanup_program(std::string const &program) {
-    // char replacement[2] = {VMACH_CMD_SEP};
-    // maybe not a best way to do this, but it works for now
-    // return std::regex_replace(program, std::regex("\\s+"), replacement);
-
-    return program;
-}
-
 class Vmach {
    public:
     typedef uint16_t Word;
 
    public:
-    static_assert(
-        VMACH_CMD_SEP != '\0',
-        "As program is a string, VMACH_CMD_SEP must not be '\\0'."
-    );
     Vmach(std::string const &program, Vram &ram)
-    : program(new std::istringstream(cleanup_program(program))), _ram(ram) {}
+    : program(new std::istringstream(program)), _ram(ram) {}
     Vmach(Vmach const &other) = delete;
     Vmach(Vmach const &&other) = delete;
     ~Vmach() { delete program; }
@@ -42,10 +27,10 @@ class Vmach {
     void step();
 
    private:
-    std::string next_op();
+    std::string next_op(), prev_op();
     /// Goes to the matching `op` in the provided `direction`.
     /// When looking backward, searches for the position after the word.
-    void goto_matching_op(char const *const op, int const direction);
+    void goto_matching_op(std::string const &op, int const direction);
 
     void op_const(Word const value);
     void op_loop(), op_endloop();
@@ -56,9 +41,32 @@ class Vmach {
     void op_read(), op_write();
     void op_swap();
     void op_cur(), op_last();
+
+    void op_comment(), op_endcomment();
     // TODO more ops : logical and arithmetic
 
    public:
+    static std::string const opcode_loop;
+    static std::string const opcode_endloop;
+    static std::string const opcode_asc;
+    static std::string const opcode_desc;
+
+    static std::string const opcode_then;
+    static std::string const opcode_endthen;
+
+    static std::string const opcode_equal;
+    static std::string const opcode_assert;
+
+    static std::string const opcode_read;
+    static std::string const opcode_write;
+
+    static std::string const opcode_swap;
+    static std::string const opcode_cur;
+    static std::string const opcode_last;
+
+    static std::string const opcode_comment;
+    static std::string const opcode_endcomment;
+
     std::istream *const program;
 
     /// This is just a general register of a full size. The only ops that `mod RAM_SIZE`
@@ -67,30 +75,34 @@ class Vmach {
     std::stack<Word> stack;
 
    private:
+    static std::unordered_map<std::string, std::string> const _opcode_opposites;
+
     bool _is_running = false;
 
     Vram &_ram;
     std::stack<Word> _hidden_stack;
+
     std::unordered_map<std::string, std::function<void()>> const _ops = {
-        {"loop", [this]() { this->op_loop(); }},
-        {"endloop", [this]() { this->op_endloop(); }},
-        {"asc", [this]() { this->op_asc(); }},
-        {"desc", [this]() { this->op_desc(); }},
+        {opcode_loop, [this]() { this->op_loop(); }},
+        {opcode_endloop, [this]() { this->op_endloop(); }},
+        {opcode_asc, [this]() { this->op_asc(); }},
+        {opcode_desc, [this]() { this->op_desc(); }},
 
-        {"then", [this]() { this->op_then(); }},
-        {"endthen", [this]() { this->op_endthen(); }},
+        {opcode_then, [this]() { this->op_then(); }},
+        {opcode_endthen, [this]() { this->op_endthen(); }},
 
-        // {"equal?", [this]() { this->op_equal(); }},
-        {"assert!", [this]() { this->op_assert(); }},
+        // {opcode_equal, [this]() { this->op_equal(); }},
+        {opcode_assert, [this]() { this->op_assert(); }},
 
-        // {"read", [this]() { this->op_read(); }},
-        // {"write", [this]() { this->op_write(); }},
+        // {opcode_write, [this]() { this->op_read(); }},
+        // {opcode_read, [this]() { this->op_write(); }},
 
-        // {"swap", [this]() { this->op_swap(); }},
-        // {"cur", [this]() { this->op_cur(); }},
-        // {"last", [this]() { this->op_last(); }},
+        // {opcode_swap, [this]() { this->op_swap(); }},
+        // {opcode_cur, [this]() { this->op_cur(); }},
+        // {opcode_last, [this]() { this->op_last(); }},
 
-        // TODO rest
+        {opcode_comment, [this]() { this->op_comment(); }},
+        {opcode_endcomment, [this]() { this->op_endcomment(); }}
     };
 };
 

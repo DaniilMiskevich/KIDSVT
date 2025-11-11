@@ -1,4 +1,3 @@
-
 #include <cstdio>
 #include <string>
 
@@ -39,8 +38,31 @@ int main() {
     vram.set_error(3, 0, Vram::STUCK_AT_1);
     vram.set_error(4, 3, Vram::STUCK_AT_0);
 
-    Vmach vmach("2 LOOP DESC    1 ASSERT!   ENDLOOP", vram);
-    for (size_t i = 0; i < 20; i++) vmach.step();
+    Vmach vmach(
+        R"END(
+
+        1 LOOP DESC 
+            3 LOOP DESC 
+                1 ASSERT!
+            ENDLOOP
+        ENDLOOP
+
+        0 THEN
+            1 ASSERT!
+            1 ASSERT!
+        ENDTHEN
+
+        /* this is just a /* nested */ comment */
+
+        1 THEN
+            1 ASSERT!
+            1 ASSERT!
+        ENDTHEN
+
+        )END",
+        vram
+    );
+    for (size_t i = 0; i < 200; i++) vmach.step();
 
     for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
         for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08lX ", vram.read(i * PRINT_COLS + j));

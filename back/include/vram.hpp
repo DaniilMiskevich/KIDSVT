@@ -21,7 +21,7 @@ class Vram {
 
    public:
     Vram(size_t const word_count) : len(word_count), _data(new Word[word_count]) {};
-    // TODO implement copy constructor
+    // TODO implement copy and move constructor
 
     /// Gets a word at `i`ndex of the ram with set errors applied.
     Word read(size_t const i) const;
