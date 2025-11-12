@@ -52,8 +52,6 @@ int main() {
             1 ASSERT!
         ENDTHEN
 
-        /* this is just a /* nested */ comment */
-
         1 THEN
             1 ASSERT!
             1 ASSERT!
