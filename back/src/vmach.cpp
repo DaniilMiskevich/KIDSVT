@@ -45,9 +45,6 @@ std::string const Vmach::opcode_swap = "swap";
 std::string const Vmach::opcode_cur = "cur";
 std::string const Vmach::opcode_last = "last";
 
-std::string const Vmach::opcode_comment = "/*";
-std::string const Vmach::opcode_endcomment = "*/";
-
 void Vmach::step() {
     auto const op = next_op();
     auto const constant = sane_stoull<Word>(op);
@@ -75,9 +72,6 @@ std::unordered_map<std::string, std::string> const Vmach::_opcode_opposites = {
     {Vmach::opcode_endloop, Vmach::opcode_loop},
     {Vmach::opcode_then, Vmach::opcode_endthen},
     {Vmach::opcode_endthen, Vmach::opcode_then},
-
-    {Vmach::opcode_comment, Vmach::opcode_endcomment},
-    {Vmach::opcode_endcomment, Vmach::opcode_comment},
 };
 
 std::string Vmach::next_op() {
@@ -159,6 +153,3 @@ void Vmach::op_assert() {
     Word const arg = sane_pop(stack);
     if (!arg) halt();
 }
-
-void Vmach::op_comment() { goto_matching_op(opcode_endcomment, 1); }
-void Vmach::op_endcomment() { printf("COMMENT ENDED\n"); }

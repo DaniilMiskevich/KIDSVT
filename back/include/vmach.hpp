@@ -42,7 +42,6 @@ class Vmach {
     void op_swap();
     void op_cur(), op_last();
 
-    void op_comment(), op_endcomment();
     // TODO more ops : logical and arithmetic
 
    public:
@@ -63,9 +62,6 @@ class Vmach {
     static std::string const opcode_swap;
     static std::string const opcode_cur;
     static std::string const opcode_last;
-
-    static std::string const opcode_comment;
-    static std::string const opcode_endcomment;
 
     std::istream *const program;
 
@@ -100,9 +96,6 @@ class Vmach {
         // {opcode_swap, [this]() { this->op_swap(); }},
         // {opcode_cur, [this]() { this->op_cur(); }},
         // {opcode_last, [this]() { this->op_last(); }},
-
-        {opcode_comment, [this]() { this->op_comment(); }},
-        {opcode_endcomment, [this]() { this->op_endcomment(); }}
     };
 };
 
