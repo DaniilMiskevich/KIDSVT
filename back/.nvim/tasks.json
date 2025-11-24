@@ -1,0 +1,7 @@
+{
+    "tasks": {
+        "run": { "cmd": "make" },
+        "build": { "cmd": "make build" },
+        "clean": { "cmd": "make clean" }
+    }
+}
