@@ -215,9 +215,9 @@ void Vmach::op_cur() {
     stack_push(cur), stack_push(cur);
 }
 
-void Vmach::op_equal() { stack_push(stack_pop() == stack_pop() ? 0xFFFF : 0x0000); }
-void Vmach::op_greater() { stack_push(stack_pop() > stack_pop() ? 0xFFFF : 0x0000); }
-void Vmach::op_less() { stack_push(stack_pop() < stack_pop() ? 0xFFFF : 0x0000); }
+void Vmach::op_equal() { stack_push(stack_pop() == stack_pop() ? -1 : 0); }
+void Vmach::op_greater() { stack_push(stack_pop() > stack_pop() ? -1 : 0); }
+void Vmach::op_less() { stack_push(stack_pop() < stack_pop() ? -1 : 0); }
 
 void Vmach::op_not() { stack_push(~stack_pop()); }
 void Vmach::op_xor() { stack_push(stack_pop() ^ stack_pop()); }
