@@ -1,5 +1,5 @@
 #include <cstdio>
-#include <string>
+#include <fstream>
 
 #include "vmach.hpp"
 #include "vram.hpp"
@@ -31,9 +31,13 @@ char const *const demoprogram = R"END(
 
 )END";
 
+/*
+ * */
+
 int main() {
-    Vram vram(8);
-    Vmach vmach(
+    std::istream *program =
+
+        // new std::istringstream(
         /* R"END(
 
         1
@@ -52,11 +56,41 @@ int main() {
         drop
 
         )END", */
-        demoprogram,
-        vram
-    );
-    for (size_t i = 0; i < 3000; i++) { vmach.step(); }
-    printf("=====ENDED======\nstate: %i\n", vmach.state());
+        // R"END(
+
+        //     0DEAD 0BEEF
+
+        //     last @dump drop
+
+        //     cur @dump drop
+
+        //     )END"
+        // );
+        new std::ifstream("./res/march_x.whatever");
+
+    Vram vram(8);
+    Vmach vmach(program, vram);
+
+    while (vmach.state() == Vmach::OK || vmach.state() == Vmach::HALTED) {
+        while (vmach.state() == Vmach::OK) vmach.step();
+
+        if (vmach.state() == Vmach::HALTED) {
+            printf("\n===== PROGRAM HALTED =====\n");
+
+            char choise;
+            printf("Continue? "), scanf(" %c", &choise);
+            if (choise != 'y') break;
+            vmach.unhalt();
+        }
+    }
+    char const *const states[] = {
+        "early",
+        "halted",
+        "successfully",
+        "program error!",
+        "stack underflow!",
+    };
+    printf("\n===== PROGRAM ENDED: %s =====\n\n", states[vmach.state()]);
 
     for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
         for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08X ", vram.read(i * PRINT_COLS + j));

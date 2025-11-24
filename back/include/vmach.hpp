@@ -17,30 +17,23 @@ class Vmach {
         HALTED,
         PROGRAM_ENDED,
 
-        ASSERTION_FAILED,
+        PROGRAM_ERROR,
         STACK_UNDERFLOW,
     };
 
    public:
-    Vmach(std::string const &program, Vram &ram)
-    : program(new std::istringstream(program)), _ram(ram) {
-        reset();
-    }
+    Vmach(std::istream *const program, Vram &ram) : program(program), _ram(ram) { reset(); }
     Vmach(Vmach const &other) = delete;
     Vmach(Vmach const &&other) = delete;
     ~Vmach() { delete program; }
 
     inline State state() const { return _state; }
-    inline void reset() {
-        i = 0;
-        while (!stack.empty()) stack.pop();
-        while (!_hidden_stack.empty()) _hidden_stack.pop();
-
-        _state = OK;
-        program->clear(), program->seekg(0, std::ios::beg);
+    inline void unhalt() {
+        if (_state == HALTED) _state = OK;
     }
     inline void halt() { _state = HALTED; }
 
+    void reset();
     void step();
     void dump_stack() const;
 

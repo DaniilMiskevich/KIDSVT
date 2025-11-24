@@ -43,26 +43,32 @@ std::string const Vmach::opcode_not = "not", Vmach::opcode_xor = "xor", Vmach::o
 std::string const Vmach::opcode_add = "add", Vmach::opcode_neg = "neg";
 std::string const Vmach::opcode_push_i = "i", Vmach::opcode_pop_i = "i=";
 
+void Vmach::reset() {
+    i = 0;
+    while (!stack.empty()) stack.pop();
+    while (!_hidden_stack.empty()) _hidden_stack.pop();
+
+    _state = OK;
+    program->clear(), program->seekg(0, std::ios::beg);
+}
 void Vmach::step() {
     if (_state != OK) return;
+    try {
+        auto const op = next_op();
+        auto const constant = sane_stoull<Word>(op);
 
-    auto const op = next_op();
-    auto const constant = sane_stoull<Word>(op);
+        if (constant.has_value()) {
+            op_const(constant.value());
+        } else {
+            if (op.empty()) throw PROGRAM_ENDED;
 
-    if (constant.has_value()) {
-        op_const(constant.value());
-    } else {
-        if (op.empty()) {
-            _state = PROGRAM_ENDED;
-            return;
+            try {
+                _ops.at(op)();
+            } catch (std::out_of_range const &e) {
+                printf("warn: UNKNOWN OPERATION `%s`\n", op.c_str());
+            }
         }
-
-        try {
-            _ops.at(op)();
-        } catch (std::out_of_range const &e) {
-            std::cout << "warn: UNKNOWN OPERATION: `" << op.c_str() << "`" << std::endl;
-        }
-    }
+    } catch (State const &state_change) { _state = state_change; }
 }
 
 void Vmach::dump_stack() const {
@@ -89,18 +95,18 @@ std::map<std::string, std::string> const Vmach::_opcode_opposites = {
     {Vmach::opcode_endthen, Vmach::opcode_then},
 };
 
-// TODO! handle overflow and underflow errors in next and prev errors
 std::string Vmach::next_op() {
     std::string op;
-    *program >> op;
+    if (!(*program >> op)) throw PROGRAM_ENDED;
     // makes the machine case-insensitive
     std::transform(op.begin(), op.end(), op.begin(), tolower);
     return op;
 }
 std::string Vmach::prev_op() {
     std::string op;
-    do { program->seekg(-2, std::ios::cur); } while (!isspace(program->get()));
-    do { program->seekg(-2, std::ios::cur); } while (isspace(program->get()));
+    do { program->seekg(-2, std::ios::cur); } while (*program && !isspace(program->get()));
+    do { program->seekg(-2, std::ios::cur); } while (*program && isspace(program->get()));
+    if (!*program) throw PROGRAM_ERROR;
 
     size_t const pos = program->tellg();
     op = next_op();
@@ -132,10 +138,7 @@ Vmach::Word Vmach::stack_pop() {
     try {
         auto const w = sane_pop(stack);
         return w;
-    } catch (std::range_error const &e) {
-        _state = STACK_UNDERFLOW;
-        return Word{};
-    }
+    } catch (std::range_error const &e) { throw STACK_UNDERFLOW; }
 }
 void Vmach::stack_push(Vmach::Word const value) { stack.push(value); }
 
@@ -150,7 +153,9 @@ void Vmach::op_loop() {
 void Vmach::op_endloop() {
     printf("reached ENDLOOP; ");
     if (i == 0) {
-        i = sane_pop(_hidden_stack);
+        try {
+            i = sane_pop(_hidden_stack);
+        } catch (std::range_error const &e) { throw PROGRAM_ERROR; }
         printf("loop ended: i=0; ↓%u\n", i);
     } else {
         printf("i=%u; next iter\n", i);
@@ -175,8 +180,8 @@ void Vmach::op_assert() {
     printf("ASSERTION\n");
     Word const arg = stack_pop();
     if (!arg) {
-        _state = ASSERTION_FAILED;
         printf("\tFAILED!\n");
+        throw HALTED;
     }
 }
 
@@ -194,11 +199,11 @@ void Vmach::op_write() {
 void Vmach::op_swap() {
     Word const cur = stack_pop(), last = stack_pop();
     stack_push(cur), stack_push(last);
-    printf("SWAPPED: %u <-> %u", cur, last);
+    printf("SWAPPED: %u <-> %u\n", cur, last);
 }
 void Vmach::op_drop() {
     stack_pop();
-    printf("DROPPED");
+    printf("DROPPED\n");
 }
 
 void Vmach::op_last() {
@@ -221,7 +226,7 @@ void Vmach::op_or() { stack_push(stack_pop() | stack_pop()); }
 void Vmach::op_lshift() { stack_push(stack_pop() << 1); }
 
 void Vmach::op_add() { stack_push(stack_pop() + stack_pop()); }
-void Vmach::op_neg() { stack_push(-sane_pop(stack)); }
+void Vmach::op_neg() { stack_push(-stack_pop()); }
 
 void Vmach::op_push_i() { stack_push(i); }
 void Vmach::op_pop_i() { i = stack_pop(); }
