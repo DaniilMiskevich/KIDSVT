@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <string>
 
-#include "conviniences.hpp"
 #include "vmach.hpp"
 #include "vram.hpp"
 
@@ -18,52 +17,49 @@ static int printword(Vram::Word const word) {
 }
 
 char const *const demoprogram = R"END(
-        0 1
-        2 LOOP DESC
-            SWAP
-            0 LOOP 
-                CUR WRITE
-                CUR READ EQUAL?
-                ASSERT!
-            ASC ENDLOOP
-        ENDLOOP
-    )END";
+
+    0 -1
+    2 loop desc
+        swap
+        0 loop 
+            cur write
+            cur read equal?
+            assert!
+        asc endloop
+    endloop
+    drop drop
+
+)END";
 
 int main() {
-    Vram vram(32);
-
-    char const str[] = "Hello world!";
-
-    for (unsigned i = 0; i < lenof(str); i++) vram.write(i, str[i]);
-    vram.set_error(3, 0, Vram::STUCK_AT_1);
-    vram.set_error(4, 3, Vram::STUCK_AT_0);
-
+    Vram vram(8);
     Vmach vmach(
-        R"END(
+        /* R"END(
 
-        1 LOOP DESC 
-            3 LOOP DESC 
-                1 ASSERT!
-            ENDLOOP
-        ENDLOOP
+        1
+        0 loop
+            cur write
+            lshift
+        asc endloop
+        drop
 
-        0 THEN
-            1 ASSERT!
-            1 ASSERT!
-        ENDTHEN
+        1
+        0 loop
+            cur read
+            equal? assert!
+            lshift
+        asc endloop
+        drop
 
-        1 THEN
-            1 ASSERT!
-            1 ASSERT!
-        ENDTHEN
-
-        )END",
+        )END", */
+        demoprogram,
         vram
     );
-    for (size_t i = 0; i < 200; i++) vmach.step();
+    for (size_t i = 0; i < 3000; i++) { vmach.step(); }
+    printf("=====ENDED======\nstate: %i\n", vmach.state());
 
     for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
-        for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08lX ", vram.read(i * PRINT_COLS + j));
+        for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08X ", vram.read(i * PRINT_COLS + j));
         printf("| ");
         for (unsigned j = 0; j < PRINT_COLS; j++) printword(vram.read(i * PRINT_COLS + j));
         printf("\n");

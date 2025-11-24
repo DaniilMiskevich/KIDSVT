@@ -5,22 +5,25 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <unordered_map>
 
 class Vram {
    public:
+    using Word = uint32_t;
+
     enum ErrType {
         NO = 0,
         STUCK_AT_0,
         STUCK_AT_1,
         // TODO! expand on this
     };
-
-    typedef uintptr_t Word;
-    typedef std::array<ErrType, sizeof(Word) * 8> WordErrs;
+    using WordErrs = std::array<ErrType, sizeof(Word) * 8>;
 
    public:
-    Vram(size_t const word_count) : len(word_count), _data(new Word[word_count]) {};
+    explicit Vram(size_t const len) : len(len), _data(new Word[len]) {
+        for (size_t i = 0; i < len; i++) _data[i] = Word{};
+    };
     // TODO implement copy and move constructor
 
     /// Gets a word at `i`ndex of the ram with set errors applied.
