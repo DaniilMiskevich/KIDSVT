@@ -92,6 +92,7 @@ int main() {
     };
     printf("\n===== PROGRAM ENDED: %s =====\n\n", states[vmach.state()]);
 
+    //vram.set_error(3,4,Vram::DECEPTIVE_READ_0);
     for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
         for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08X ", vram.read(i * PRINT_COLS + j));
         printf("| ");

@@ -16,15 +16,34 @@ class Vram {
         NO = 0,
         STUCK_AT_0,
         STUCK_AT_1,
+        TRANSITION_0_TO_1,
+        TRANSITION_1_TO_0,
+        WRITE_OR_READ_DESTRUCTIVE_0,
+        WRITE_OR_READ_DESTRUCTIVE_1,
+        INCORRECT_READ_0,
+        INCORRECT_READ_1,
+        DECEPTIVE_READ_0,
+        DECEPTIVE_READ_1,
+        //TWO CELL FAULTS
+
         // TODO! expand on this
     };
     using WordErrs = std::array<ErrType, sizeof(Word) * 8>;
 
-   public:
+public:
     explicit Vram(size_t const len) : len(len), _data(new Word[len]) {
         for (size_t i = 0; i < len; i++) _data[i] = Word{};
     };
-    // TODO implement copy and move constructor
+
+    // copy constructor
+    Vram(const Vram& vram) : len(vram.len), _data(new Word[vram.len]), _errors(vram._errors) {
+        for (size_t i = 0; i < len; i++) _data[i] = vram._data[i]; 
+       
+    };
+
+    ~Vram() {
+        delete[] _data;
+    }
 
     /// Gets a word at `i`ndex of the ram with set errors applied.
     Word read(size_t const i) const;
