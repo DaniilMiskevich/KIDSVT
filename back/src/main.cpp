@@ -66,11 +66,12 @@ int main() {
 
         //     )END"
         // );
-        new std::ifstream("./res/march_x.whatever");
+        new std::ifstream("./res/test.kids", std::iostream::binary);
 
     Vram vram(8);
     Vmach vmach(program, vram);
-
+     // vram.set_error(3,4,Vram::DECEPTIVE_READ_0);
+     // vram.set_error(3,4,Vram::TRANSITION_1_TO_0);
     while (vmach.state() == Vmach::OK || vmach.state() == Vmach::HALTED) {
         while (vmach.state() == Vmach::OK) vmach.step();
 
@@ -92,8 +93,14 @@ int main() {
     };
     printf("\n===== PROGRAM ENDED: %s =====\n\n", states[vmach.state()]);
 
-    //vram.set_error(3,4,Vram::DECEPTIVE_READ_0);
+  
     for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
+        for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08X ", vram.read(i * PRINT_COLS + j));
+        printf("| ");
+        for (unsigned j = 0; j < PRINT_COLS; j++) printword(vram.read(i * PRINT_COLS + j));
+        printf("\n");
+    }
+        for (unsigned i = 0; i < vram.len / PRINT_COLS; i++) {
         for (unsigned j = 0; j < PRINT_COLS; j++) printf("%08X ", vram.read(i * PRINT_COLS + j));
         printf("| ");
         for (unsigned j = 0; j < PRINT_COLS; j++) printword(vram.read(i * PRINT_COLS + j));

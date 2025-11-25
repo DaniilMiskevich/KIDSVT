@@ -24,9 +24,6 @@ class Vram {
         INCORRECT_READ_1,
         DECEPTIVE_READ_0,
         DECEPTIVE_READ_1,
-        //TWO CELL FAULTS
-
-        // TODO! expand on this
     };
     using WordErrs = std::array<ErrType, sizeof(Word) * 8>;
 
@@ -35,7 +32,6 @@ public:
         for (size_t i = 0; i < len; i++) _data[i] = Word{};
     };
 
-    // copy constructor
     Vram(const Vram& vram) : len(vram.len), _data(new Word[vram.len]), _errors(vram._errors) {
         for (size_t i = 0; i < len; i++) _data[i] = vram._data[i]; 
        

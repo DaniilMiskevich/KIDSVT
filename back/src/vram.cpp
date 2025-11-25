@@ -12,7 +12,7 @@ Vram::Word Vram::read(size_t const i) const {
             case NO: break;
             case STUCK_AT_0: word &= ~(1 << pos); break;
             case STUCK_AT_1: word |= (1 << pos); break;
-            case WRITE_OR_READ_DESTRUCTIVE_0: // same logic for W & R
+            case WRITE_OR_READ_DESTRUCTIVE_0: 
                 if(!(word & (1 << pos))) {
                     _data[i] |= (1 << pos);
                     word = _data[i];
